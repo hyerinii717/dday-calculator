@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🤰 출산 D-day 계산기</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+    background: linear-gradient(135deg, #fff0f5 0%, #f5f0ff 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  .card {
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(180, 100, 180, 0.12);
+    padding: 2.5rem 2rem;
+    max-width: 460px;
+    width: 100%;
+  }
+  .header { text-align: center; margin-bottom: 2rem; }
+  .header .emoji { font-size: 48px; display: block; margin-bottom: 8px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #2c1a3a; margin-bottom: 6px; }
+  .header p { font-size: 14px; color: #9a7aaa; }
+
+  label { font-size: 13px; font-weight: 600; color: #6a4a7a; display: block; margin-bottom: 8px; letter-spacing: 0.3px; }
+  input[type="date"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e8d8f0;
+    border-radius: 14px;
+    font-size: 16px;
+    color: #2c1a3a;
+    background: #fdf8ff;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="date"]:focus { border-color: #b06ccf; }
+
+  .btn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 15px;
+    background: linear-gradient(135deg, #c47ee0, #8b5cf6);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+  .btn:hover { opacity: 0.92; }
+  .btn:active { transform: scale(0.98); }
+
+  .error { font-size: 13px; color: #e05555; margin-top: 8px; display: none; padding-left: 4px; }
+
+  .result { margin-top: 1.75rem; display: none; animation: fadeIn 0.35s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .metric {
+    background: #fdf5ff;
+    border: 1.5px solid #ead8f5;
+    border-radius: 14px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .metric.highlight {
+    background: linear-gradient(135deg, #f0e6ff, #ffe6f5);
+    border-color: #c88ee0;
+    grid-column: 1 / -1;
+  }
+  .metric-label { font-size: 11px; font-weight: 600; color: #9a7aaa; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+  .metric-value { font-size: 17px; font-weight: 700; color: #4a1a6a; }
+  .metric.highlight .metric-value { font-size: 38px; color: #8b3cbb; letter-spacing: -1px; }
+  .metric.highlight .metric-label { color: #a05aca; }
+
+  .progress-card {
+    background: #fdf5ff;
+    border: 1.5px solid #ead8f5;
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 14px;
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 600;
+    color: #9a7aaa;
+    letter-spacing: 0.3px;
+    margin-bottom: 10px;
+  }
+  .progress-track {
+    background: #ead8f5;
+    border-radius: 999px;
+    height: 12px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #c47ee0, #8b5cf6);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .progress-pct { text-align: center; font-size: 13px; font-weight: 700; color: #8b3cbb; }
+
+  .message-card {
+    background: linear-gradient(135deg, #fff8e1, #fff0f5);
+    border: 1.5px solid #f5d8e8;
+    border-radius: 14px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: #6a3a5a;
+    line-height: 1.6;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  .footer { text-align: center; margin-top: 1.5rem; font-size: 12px; color: #c8a8d8; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <span class="emoji">🤰</span>
+    <h1>출산 D-day 계산기</h1>
+    <p>출산 예정일을 입력하면 바로 계산해드려요</p>
+  </div>
+
+  <label for="due">출산 예정일 선택</label>
+  <input type="date" id="due" />
+  <p class="error" id="err">📅 날짜를 먼저 입력해주세요!</p>
+  <button class="btn" onclick="calc()">✨ D-day 계산하기</button>
+
+  <div class="result" id="result">
+    <div class="grid">
+      <div class="metric highlight">
+        <div class="metric-label">D - day</div>
+        <div class="metric-value" id="dday-val"></div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">출산 예정일</div>
+        <div class="metric-value" id="due-val"></div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">현재 임신 주수</div>
+        <div class="metric-value" id="week-val"></div>
+      </div>
+    </div>
+
+    <div class="progress-card">
+      <div class="progress-header">
+        <span>🌱 임신 시작</span>
+        <span>🏥 출산 예정일</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="bar" style="width:0%"></div>
+      </div>
+      <div class="progress-pct" id="pct-val"></div>
+    </div>
+
+    <div class="message-card" id="msg-card"></div>
+  </div>
+
+  <div class="footer">매일 자동으로 오늘 기준 D-day를 계산해요</div>
+</div>
+
+<script>
+function calc() {
+  const v = document.getElementById('due').value;
+  const err = document.getElementById('err');
+  if (!v) {
+    err.style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    return;
+  }
+  err.style.display = 'none';
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(v); due.setHours(0,0,0,0);
+  const diff = Math.round((due - today) / 86400000);
+
+  const start = new Date(due); start.setDate(start.getDate() - 280);
+  const elapsed = Math.round((today - start) / 86400000);
+  const pct = Math.min(Math.max((elapsed / 280) * 100, 0), 100);
+  const weeks = Math.floor(Math.max(elapsed, 0) / 7);
+  const days = Math.max(elapsed, 0) % 7;
+
+  const d = due;
+  document.getElementById('due-val').textContent = `${d.getMonth()+1}월 ${d.getDate()}일`;
+
+  if (diff > 0) {
+    document.getElementById('dday-val').textContent = `D-${diff}`;
+  } else if (diff === 0) {
+    document.getElementById('dday-val').textContent = `D-Day!`;
+  } else {
+    document.getElementById('dday-val').textContent = `D+${Math.abs(diff)}`;
+  }
+
+  if (elapsed > 0 && diff >= 0) {
+    document.getElementById('week-val').textContent = `${weeks}주 ${days}일`;
+  } else if (diff < 0) {
+    document.getElementById('week-val').textContent = '출산 완료 🎉';
+  } else {
+    document.getElementById('week-val').textContent = '-';
+  }
+
+  document.getElementById('bar').style.width = `${pct.toFixed(1)}%`;
+  document.getElementById('pct-val').textContent = `진행률 ${Math.round(pct)}%`;
+
+  let msg = '';
+  if (diff > 90) msg = '💕 소중한 아기와의 만남을 기다리고 있어요. 건강하게 잘 지내세요!';
+  else if (diff > 30) msg = '🌸 임신 후기예요! 태동을 꼼꼼히 체크하고 정기 검진을 빠짐없이 받으세요.';
+  else if (diff > 14) msg = '🎒 출산이 한 달 이내예요! 출산 가방 최종 점검해보세요.';
+  else if (diff > 0) msg = '🤱 이제 곧 만나요! 언제든 분만이 시작될 수 있으니 준비 완료 상태로 있어요.';
+  else if (diff === 0) msg = '🌺 오늘이 출산 예정일이에요! 건강하고 순산하길 응원해요!';
+  else msg = '👶 출산 예정일이 지났어요. 아기와 산모 모두 건강하길 바라요!';
+
+  document.getElementById('msg-card').textContent = msg;
+  document.getElementById('result').style.display = 'block';
+}
+</script>
+</body>
+</html>
